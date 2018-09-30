@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Requirements
+      shell: "export LC_ALL=C; pip install -r requirements.txt"
+      args:
+        chdir: /home/ubuntu/flask-app/
+
+    - template:
+        src: /home/ubuntu/flask-app/deploy/templates/app_systemd.j2
+        dest: /lib/systemd/system/python_app.service
+        mode: 0644
+
+    - name: Reload systemctl daemon
+      command: systemctl daemon-reload
+
+    - name: Enable on boot
+      command: systemctl enable python_app.service
+
+    - name: Ensure the python_app service is running
+      service:
+        name: python_app
+        state: started
